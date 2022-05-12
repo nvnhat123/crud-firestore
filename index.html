@@ -164,16 +164,34 @@
 
         const usersCollection = collection(db, "users");
         var userList = document.querySelector('#listUser');
-        
+
         async function getAllUser() {
             const myQuery = query(usersCollection);
             const mySnapshot = await getDocs(myQuery);
+            console.log(mySnapshot);
+
+            // test 
+            const unsubscribe = onSnapshot(myQuery, (snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        console.log("New city: ", change.doc.data());
+                    }
+                    if (change.type === "modified") {
+                        console.log("Modified city: ", change.doc.data());
+                    }
+                    if (change.type === "removed") {
+                        console.log("Removed city: ", change.doc.data());
+                    }
+                });
+            });
+
             userList.innerHTML = '';
 
             mySnapshot.forEach((myDoc) => {
                 renderUser(myDoc);
             });
         }
+
         // list user
         getAllUser();
         function renderUser(doc) {
@@ -219,10 +237,10 @@
             update.addEventListener('click', (e) => {
                 let formEdit = document.getElementById('formEdit');
                 formEdit.id.value = doc.id;
-                formEdit.name.value = doc.data().name; 
-                formEdit.email.value = doc.data().email; 
-                formEdit.address.value = doc.data().address; 
-                formEdit.phone.value = doc.data().phone; 
+                formEdit.name.value = doc.data().name;
+                formEdit.email.value = doc.data().email;
+                formEdit.address.value = doc.data().address;
+                formEdit.phone.value = doc.data().phone;
                 console.log(formEdit.id.value);
             });
         }
@@ -246,7 +264,7 @@
             getAllUser();
 
         });
-        
+
         // delete user
         async function deleteUser(id) {
             const deleteItem = doc(db, 'users', id);
@@ -259,13 +277,13 @@
             e.preventDefault();
             const myDocRef = doc(db, 'users', formEdit.id.value);
             await setDoc(
-                myDocRef, 
-                {                 
+                myDocRef,
+                {
                     name: formEdit.name.value,
                     email: formEdit.email.value,
                     address: formEdit.address.value,
-                    phone: formEdit.phone.value 
-                }, 
+                    phone: formEdit.phone.value
+                },
                 { merge: true }
             );
             formEdit.name.value = '';
@@ -274,6 +292,26 @@
             formEdit.phone.value = '';
             getAllUser();
         });
+
+        function refreshUsers() {
+            const myQuery = query(usersCollection);
+
+            const unsubscribe = onSnapshot(myQuery, (snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        console.log("New city: ", change.doc.data());
+                    }
+                    if (change.type === "modified") {
+                        console.log("Modified city: ", change.doc.data());
+                    }
+                    if (change.type === "removed") {
+                        console.log("Removed city: ", change.doc.data());
+                    }
+                    getAllUser();
+                });
+            });
+        }
+        refreshUsers();
 
     </script>
 
